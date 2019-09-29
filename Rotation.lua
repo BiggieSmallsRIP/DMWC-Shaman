@@ -87,7 +87,7 @@ local function DEF()
 			return true
 		end
 	end	
-	if Setting("OOC Healing") and not Player.Combat and not. Player.Moving and HP < Setting("OOC Healing Percent HP") and PowerPct > Setting("OOC Healing Percent Mana") then
+	if Setting("OOC Healing") and not Player.Combat and not Player.Moving and HP < Setting("OOC Healing Percent HP") and PowerPct > Setting("OOC Healing Percent Mana") then
 		if Spell.LesserHealingWave:Known() then 
 			if Spell.LesserHealingWave:Cast(Player) then
 			return true

@@ -49,7 +49,7 @@ local function Utility()
         if Buff.LightningShield:Remain() < 30 and Spell.LightningShield:Cast(Player) then
             return true
         end
-    elseif Setting("Lightning Shield") and Spell.ImprovedLightningShield:Known() then
+    elseif Setting("LightningShield") and Spell.ImprovedLightningShield:Known() then
         if Buff.ImprovedLightningShield:Remain() < 300 and Spell.ImprovedLightningShield:Cast(Player) then
             return true
         end
@@ -78,7 +78,7 @@ local function DEF()
 	--- Defensives ---
 	------------------
 	--In Combat healing
-	if Setting("Healing Wave") and HP < Setting("Healing Wave Percent") and Player.Combat then
+	if Setting("Healing Wave") and HP < Setting("Healing Wave Percent") and Player.Combat and not. Player.Moving then
 		if Spell.LesserHealingWave:Known() then 
 			if Spell.LesserHealingWave:Cast(Player) then
 				return true
@@ -87,7 +87,7 @@ local function DEF()
 			return true
 		end
 	end	
-	if Setting("OOC Healing") and HP < Setting("OOC Healing Percent HP") and PowerPct > Setting("OOC Healing Percent Mana") and not Player.Combat then
+	if Setting("OOC Healing") and not Player.Combat and not. Player.Moving and HP < Setting("OOC Healing Percent HP") and PowerPct > Setting("OOC Healing Percent Mana") then
 		if Spell.LesserHealingWave:Known() then 
 			if Spell.LesserHealingWave:Cast(Player) then
 			return true
@@ -115,7 +115,7 @@ function Shaman.Rotation()
 	-- DPS --
 	-----------------	
 -- EarthShock
-	if Setting("Earth Shock") and Target and Target.ValidEnemy and Target.Distance < 20 and Target.Facing and Player.PowerPct > 50 and Target.TTD > 4 then
+	if Setting("Earth Shock") and Target and Target.ValidEnemy and Target.Distance < 20 and Target.Facing and Player.PowerPct > Setting("Earth Shock Mana") and Target.TTD > 4 then
 		if Spell.EarthShock:Cast(Target) then
 			return
 		end

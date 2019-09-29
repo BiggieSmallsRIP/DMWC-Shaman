@@ -78,7 +78,7 @@ local function DEF()
 	--- Defensives ---
 	------------------
 	--In Combat healing
-	if Setting("Healing Wave") and HP < Setting("Healing Wave Percent") and Player.Combat and not. Player.Moving then
+	if Setting("Healing Wave") and HP < Setting("Healing Wave Percent") and Player.Combat and not Player.Moving then
 		if Spell.LesserHealingWave:Known() then 
 			if Spell.LesserHealingWave:Cast(Player) then
 				return true

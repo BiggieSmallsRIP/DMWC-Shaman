@@ -45,11 +45,11 @@ local function Utility()
 	--- Utility ---
 	------------------
 --Lightning Shield
-    if Setting("LightningShield") and Spell.LightningShield:Known() then
+    if Setting("Lightning Shield") and Spell.LightningShield:Known() then
         if Buff.LightningShield:Remain() < 30 and Spell.LightningShield:Cast(Player) then
             return true
         end
-    elseif Setting("LightningShield") and Spell.ImprovedLightningShield:Known() then
+    elseif Setting("Lightning Shield") and Spell.ImprovedLightningShield:Known() then
         if Buff.ImprovedLightningShield:Remain() < 300 and Spell.ImprovedLightningShield:Cast(Player) then
             return true
         end

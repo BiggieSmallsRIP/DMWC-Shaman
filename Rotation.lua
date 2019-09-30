@@ -2,7 +2,7 @@ local DMW = DMW
 local Shaman = DMW.Rotations.SHAMAN
 local Rotation = DMW.Helpers.Rotation
 local Setting = DMW.Helpers.Rotation.Setting
-local Player, Pet, Buff, Debuff, Spell, Target, Talent, Item, GCD, CDs, HUD, Enemy40Y, Enemy40YC, ComboPoints, HP, Enemy8YC, Enemy8Y, Enemy60Y, Enemy60YC
+local Player, Pet, Buff, Debuff, Spell, Target, Talent, Item, GCD, CDs, HUD, Enemy40Y, Enemy40YC, ComboPoints, HP, Enemy8YC, Enemy8Y, Enemy60Y, Enemy60YC, Enemy5Y, Enemy5YC
 local hasMainHandEnchant,_ ,_ , _, hasOffHandEnchant = GetWeaponEnchantInfo()
 
 local function Locals()
@@ -21,20 +21,57 @@ local function Locals()
 	Enemy60Y, Enemy60YC = Player:GetEnemies(60)
     Enemy40Y, Enemy40YC = Player:GetEnemies(40)
 	Enemy8Y, Enemy8YC = Player:GetEnemies(8)
+	Enemy5Y, Enemy5YC = Player:GetEnemies(5)
 end
 local function Totems()
 	------------------
 	--- Totems ---
 	------------------
--- Stoneskin Totem for 2+ mobs	
-	if Setting("Stoneskin Totem") and Player.Combat and GetTotemInfo(2) == false and Enemy8YC > 1 then 
+-- Stoneskin Totem for 2+ mobs Defensive	
+	if Setting("Stoneskin Totem") and Player.Combat and GetTotemInfo(2) == false and Enemy5YC > 1 then 
 		if Spell.StoneskinTotem:Cast(Player) then
-		return true 
+			return true 
+		end
+	end
+-- Stone Claw Totem for 2+ mobs	
+	if Setting("Ston Claw Totem") and Player.Combat and GetTotemInfo(2) == false and Enemy5YC > 1 then 
+		if Spell.StoneclawTotem:Cast(Player) then
+			return true 
+		end
+	end	
+--Magma Totem
+	if Spell.MagmaTotem:Known() and Setting("Magma Totem") and Player.Combat and GetTotemInfo(1) == false and Enemy8YC > 1 and Player.PowerPct > Setting("Magma Totem Mana") and  Target and Target.ValidEnemy and  Target.TTD > 5 then 
+		if Spell.MagmaTotem:Cast(Player) then
+			return true 
+		end
+	end		
+--Fire Nova Totem	
+	if Spell.FireNovaTotem:Known() and Setting("Fire Nova Totem") and Target and Target.ValidEnemy and Player.Combat and GetTotemInfo(1) == false and Enemy5YC > 1 and Player.PowerPct > Setting("Fire Nova Totem Mana") and Target.TTD > 5 then 
+		if Spell.FireNovaTotem:Cast(Player) then
+			return true 
 		end
 	end
 --Searing Totem
-	if Setting("Searing Totem") and Player.Combat and GetTotemInfo(1) == false and Enemy8YC > 1 and Player.PowerPct > 50 then 
+	if Setting("Searing Totem") and Player.Combat and GetTotemInfo(1) == false and Player.PowerPct > Setting("Searing Totem Mana") and Target and Target.ValidEnemy and Target.TTD > 10 then 
 		if Spell.SearingTotem:Cast(Player) then
+			return true
+		end
+	end
+-- StrengthOfEarthTotem 
+	if Spell.StrengthOfEarthTotem:Known() and Setting("Strength Of Earth Totem") and Player.Combat and GetTotemInfo(2) == false and Enemy40YC > 0 then 
+		if Spell.StrengthOfEarthTotem:Cast(Player) then
+			return true
+		end
+	end
+--GraceOfAirTotem
+	if Spell.GraceOfAirTotem:Known() and Setting("Grace Of Air Totem") and Player.Combat and GetTotemInfo(4) == false and Enemy40YC > 0 then 
+		if Spell.GraceOfAirTotemm:Cast(Player) then
+			return true
+		end
+	end
+-- WindfuryTotem
+	if Spell.WindfuryTotem:Known() and Setting("Windfury Totem") and Player.Combat and GetTotemInfo(4) == false and Enemy40YC > 0 then 
+		if Spell.WindfuryTotem:Cast(Player) then
 			return true
 		end
 	end
@@ -44,6 +81,13 @@ local function Utility()
 	------------------
 	--- Utility ---
 	------------------
+--Orc Racial
+	if  Spell.BloodFury:Known() and Setting("Orc Racial") and Player.HP > 60 and Target and Target.ValidEnemy and Target.HP > 70 and Player.Combat then
+		if Spell.BloodFury:Cast(Player) then
+			return true
+		end
+	end
+	
 --Lightning Shield
     if Setting("Lightning Shield") and Spell.LightningShield:Known() then
         if Buff.LightningShield:Remain() < 30 and Spell.LightningShield:Cast(Player) then
@@ -66,8 +110,14 @@ local function Utility()
      end
 			
 -- Earth Shock Interrupt
-if Setting("ES Interrupt") and	Target and Target.ValidEnemy and Target.Distance < 20 and Target:Interrupt() then
-		if Spell.EarthShock:Cast(Target) then
+if Setting("Earth Shock Interrupt") and	Target and Target.ValidEnemy and Target.Distance < 20 and Target:Interrupt() then
+		if Spell.EarthShock:Cast(Target, 1) then
+			return
+		end
+	end	
+-- Frost Shock Slow Runner
+if Setting("Frost Shock Runner") and Target and Target.ValidEnemy and Target.Distance < 20 and CreatureType == "Humanoid" then
+		if Spell.FrostShock:Cast(Target) then
 			return
 		end
 	end			
@@ -78,7 +128,7 @@ local function DEF()
 	--- Defensives ---
 	------------------
 	--In Combat healing
-	if Setting("Healing Wave") and HP < Setting("Healing Wave Percent") and Player.Combat and not Player.Moving then
+	if Setting("In Combat Heal") and HP < Setting("Lesser Heal HP") and Player.Combat and not Player.Moving then
 		if Spell.LesserHealingWave:Known() then 
 			if Spell.LesserHealingWave:Cast(Player) then
 				return true
@@ -87,12 +137,8 @@ local function DEF()
 			return true
 		end
 	end	
-	if Setting("OOC Healing") and not Player.Combat and not Player.Moving and HP < Setting("OOC Healing Percent HP") and Power > Setting("OOC Healing Percent Mana") then
-		if Spell.LesserHealingWave:Known() then 
-			if Spell.LesserHealingWave:Cast(Player) then
-			return true
-		end
-		elseif  Spell.HealingWave:Cast(Player) then
+	if Setting("OOC Healing") and not Player.Combat and not Player.Moving and HP <= Setting("OOC Healing Percent HP") and Player.PowerPct > Setting("OOC Healing Percent Mana") then
+		if  Spell.HealingWave:Cast(Player) then
 			return true
 		end
 	end
@@ -110,12 +156,24 @@ function Shaman.Rotation()
 	if DEF() then
 		return true
 	end
-
+	-----------------
+	-- Targetting --
+	-----------------		
+    if Setting("Auto Target Quest Units") then
+       if Player:AutoTargetQuest(20, true) then
+			return true
+        end
+    end
+    if Player.Combat and Setting("Auto Target") then
+        if Player:AutoTarget(20, true) then
+            return true
+        end
+	end
 	-----------------
 	-- DPS --
 	-----------------	
 -- EarthShock
-	if Setting("Earth Shock") and Target and Target.ValidEnemy and Target.Distance < 20 and Target.Facing and Player.PowerPct > Setting("Earth Shock Mana") and Target.TTD > 4 then
+	if Setting("Earth Shock") and Target and Target.ValidEnemy and Target.Distance < 20 and Target.Facing and Player.PowerPct > Setting("Earth Shock Mana") and Target.TTD > 1 then
 		if Spell.EarthShock:Cast(Target) then
 			return
 		end

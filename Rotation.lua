@@ -23,18 +23,47 @@ local function Locals()
 	Enemy8Y, Enemy8YC = Player:GetEnemies(8)
 	Enemy5Y, Enemy5YC = Player:GetEnemies(5)
 end
+----------------
+--Smart Recast--
+----------------
+local function smartRecast(spell,unit,rank)
+    if rank == 0 then
+        rank = nil
+    end
+    if (not Spell[spell]:LastCast() or (DMW.Player.LastCast[1].SuccessTime and (DMW.Time - DMW.Player.LastCast[1].SuccessTime) > 0.7) or 
+        not UnitIsUnit(Spell[spell].LastBotTarget, unit.Pointer)) then 
+            return Spell[spell]:Cast(unit,rank)
+    end
+end
+
+
+--------------
+--5 Sec Rule--
+--------------
+local function FiveSecond()
+    if FiveSecondRuleTime == nil then
+        FiveSecondRuleTime = DMW.Time 
+    end
+    local FiveSecondRuleCount = DMW.Time - FiveSecondRuleTime
+    if FiveSecondRuleCount > 6.5 then
+        FiveSecondRuleTime = DMW.Time 
+    end
+    if Setting("Five Second Rule") and ((FiveSecondRuleCount) >= Setting("Five Second Cutoff") or (FiveSecondRuleCount <= 0.4)) then return true end
+    --print(FiveSecondRuleCount)
+end
+
 local function Totems()
 	------------------
 	--- Totems ---
 	------------------
 -- Stoneskin Totem for 2+ mobs Defensive	
-	if Setting("Stoneskin Totem") and Player.Combat and GetTotemInfo(2) == false and Enemy5YC > 1 then 
+	if Target and Target.ValidEnemy and Setting("Stoneskin Totem") and Player.Combat and GetTotemInfo(2) == false and Enemy5YC > 1 then 
 		if Spell.StoneskinTotem:Cast(Player) then
 			return true 
 		end
 	end
 -- Stone Claw Totem for 2+ mobs	
-	if Setting("Ston Claw Totem") and Player.Combat and GetTotemInfo(2) == false and Enemy5YC > 1 then 
+	if Target and Target.ValidEnemy and Setting("Ston Claw Totem") and Player.Combat and GetTotemInfo(2) == false and Enemy5YC > 1 then 
 		if Spell.StoneclawTotem:Cast(Player) then
 			return true 
 		end
@@ -116,7 +145,7 @@ if Setting("Earth Shock Interrupt") and	Target and Target.ValidEnemy and Target.
 		end
 	end	
 -- Frost Shock Slow Runner
-if Setting("Frost Shock Runner") and Target and Target.ValidEnemy and Target.Distance < 20 and CreatureType == "Humanoid" then
+if Setting("Frost Shock Runner") and Target and Target.ValidEnemy and Target.Distance < 20 and Target.CreatureType == "Humanoid" and Target.HP <= 20 then
 		if Spell.FrostShock:Cast(Target) then
 			return
 		end
@@ -142,8 +171,15 @@ local function DEF()
 			return true
 		end
 	end
+-- Cure Poison
+	if Setting("Cure Poison") and Player:Dispel(Spell.CurePoison) and Player.PowerPct > 20 then
+	if Spell.CurePoison:Cast(Player) then return true end
+	end
+-- Cure Disease
+	if Setting("Cure Disease") and Player:Dispel(Spell.CureDisease) and Player.PowerPct > 20 then
+	if Spell.CureDisease:Cast(Player) then return true end
+	end	
 end
-
 
 function Shaman.Rotation()
     Locals()
@@ -179,7 +215,7 @@ function Shaman.Rotation()
 		end
 	end
 -- Flame Shock
-	if Setting("Flame Shock") and Target and Target.ValidEnemy and Target.Distance < 20 and Target.Facing and Player.PowerPct > Setting("Flame Shock Mana") and Target.TTD > 8  and not Debuff.FlameShock:Exist(Target) and CreatureType ~= "Totem" and CreatureType ~= "Elemental" and Target.Facing then
+	if Setting("Flame Shock") and Target and Target.ValidEnemy and Target.Distance < 20 and Target.Facing and Player.PowerPct > Setting("Flame Shock Mana") and Target.TTD > 8  and not Debuff.FlameShock:Exist(Target) and Target.CreatureType ~= "Totem" and Target.CreatureType ~= "Elemental" and Target.Facing then
 		if Spell.FlameShock:Cast(Target) then
 			return 
 		end
